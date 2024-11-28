@@ -1,7 +1,7 @@
 // ignore_for_file: constant_identifier_names
 
 import 'dart:async';
-import 'dart:developer';
+import 'dart:logger';
 
 import 'package:flutter/material.dart';
 
@@ -559,6 +559,7 @@ class _SwiperState extends _SwiperTimerMixin {
         onIndexChanged: _onIndexChanged,
         controller: _controller,
         scrollDirection: widget.scrollDirection,
+        viewportFraction: widget.viewportFraction,
       );
     } else if (widget.layout == SwiperLayout.CUSTOM) {
       return _CustomLayoutSwiper(
@@ -703,6 +704,7 @@ abstract class _SubSwiper extends StatefulWidget {
     this.scrollDirection = Axis.horizontal,
     this.axisDirection = AxisDirection.left,
     this.onIndexChanged,
+    this.viewportFraction = 1.0,
   }) : super(key: key);
 
   final IndexedWidgetBuilder? itemBuilder;
@@ -717,6 +719,7 @@ abstract class _SubSwiper extends StatefulWidget {
   final bool loop;
   final Axis? scrollDirection;
   final AxisDirection? axisDirection;
+  final double viewportFraction;
 
   @override
   State<StatefulWidget> createState();
@@ -745,6 +748,7 @@ class _TinderSwiper extends _SubSwiper {
     required bool loop,
     required int itemCount,
     Axis? scrollDirection,
+    double viewportFraction = 1.0,
   })  : assert(itemWidth != null && itemHeight != null),
         super(
             loop: loop,
@@ -758,7 +762,8 @@ class _TinderSwiper extends _SubSwiper {
             index: index,
             onIndexChanged: onIndexChanged,
             itemCount: itemCount,
-            scrollDirection: scrollDirection);
+            scrollDirection: scrollDirection,
+            viewportFraction: viewportFraction);
 
   @override
   State<StatefulWidget> createState() {
@@ -824,15 +829,28 @@ class _TinderState extends _CustomLayoutStateBase<_TinderSwiper> {
 
     _startIndex = -3;
     _animationCount = 5;
-    opacity = [0.0, 0.9, 0.9, 1.0, 0.0, 0.0];
-    scales = [0.80, 0.80, 0.85, 0.90, 1.0, 1.0, 1.0];
+    // Adjust opacity based on viewportFraction
+    opacity = [0.0, 0.9 * widget.viewportFraction, 0.9 * widget.viewportFraction, 1.0, 0.0, 0.0];
+    // Adjust scales based on viewportFraction
+    final baseScale = widget.viewportFraction;
+    scales = [
+      0.80 * baseScale,
+      0.80 * baseScale,
+      0.85 * baseScale,
+      0.90 * baseScale,
+      1.0 * baseScale,
+      1.0 * baseScale,
+      1.0 * baseScale
+    ];
     rotates = [0.0, 0.0, 0.0, 0.0, 20.0, 25.0];
     _updateValues();
   }
 
   void _updateValues() {
     if (widget.scrollDirection == Axis.horizontal) {
-      offsetsX = [0.0, 0.0, 0.0, 0.0, _swiperWidth, _swiperWidth];
+      // Adjust horizontal spacing based on viewportFraction
+      final sideOffset = _swiperWidth * (1 - widget.viewportFraction);
+      offsetsX = [0.0, 0.0, 0.0, 0.0, sideOffset, sideOffset];
       offsetsY = [
         0.0,
         0.0,
@@ -850,8 +868,9 @@ class _TinderState extends _CustomLayoutStateBase<_TinderSwiper> {
         15.0,
         20.0,
       ];
-
-      offsetsY = [0.0, 0.0, 0.0, 0.0, _swiperHeight, _swiperHeight];
+      // Adjust vertical spacing based on viewportFraction
+      final sideOffset = _swiperHeight * (1 - widget.viewportFraction);
+      offsetsY = [0.0, 0.0, 0.0, 0.0, sideOffset, sideOffset];
     }
   }
 
@@ -867,6 +886,10 @@ class _TinderState extends _CustomLayoutStateBase<_TinderSwiper> {
         ? Alignment.bottomCenter
         : Alignment.centerLeft;
 
+    // Calculate size based on viewportFraction
+    final itemWidth = widget.itemWidth != null ? widget.itemWidth! * widget.viewportFraction : double.infinity;
+    final itemHeight = widget.itemHeight != null ? widget.itemHeight! * widget.viewportFraction : double.infinity;
+
     return Opacity(
       opacity: o,
       child: Transform.rotate(
@@ -878,8 +901,8 @@ class _TinderState extends _CustomLayoutStateBase<_TinderSwiper> {
             scale: s,
             alignment: alignment,
             child: SizedBox(
-              width: widget.itemWidth ?? double.infinity,
-              height: widget.itemHeight ?? double.infinity,
+              width: itemWidth,
+              height: itemHeight,
               child: widget.itemBuilder!(context, realIndex),
             ),
           ),
