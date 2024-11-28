@@ -831,24 +831,15 @@ class _TinderState extends _CustomLayoutStateBase<_TinderSwiper> {
     _animationCount = 5;
     // Adjust opacity based on viewportFraction
     opacity = [0.0, 0.9 * widget.viewportFraction, 0.9 * widget.viewportFraction, 1.0, 0.0, 0.0];
-    // Adjust scales based on viewportFraction
-    final baseScale = widget.viewportFraction;
-    scales = [
-      0.80 * baseScale,
-      0.80 * baseScale,
-      0.85 * baseScale,
-      0.90 * baseScale,
-      1.0 * baseScale,
-      1.0 * baseScale,
-      1.0 * baseScale
-    ];
+    // Keep original scales without applying viewportFraction
+    scales = [0.80, 0.80, 0.85, 0.90, 1.0, 1.0, 1.0];
     rotates = [0.0, 0.0, 0.0, 0.0, 20.0, 25.0];
     _updateValues();
   }
 
   void _updateValues() {
     if (widget.scrollDirection == Axis.horizontal) {
-      // Adjust horizontal spacing based on viewportFraction
+      // Apply viewportFraction to the offset calculations
       final sideOffset = _swiperWidth * (1 - widget.viewportFraction);
       offsetsX = [0.0, 0.0, 0.0, 0.0, sideOffset, sideOffset];
       offsetsY = [
@@ -868,7 +859,7 @@ class _TinderState extends _CustomLayoutStateBase<_TinderSwiper> {
         15.0,
         20.0,
       ];
-      // Adjust vertical spacing based on viewportFraction
+      // Apply viewportFraction to the offset calculations
       final sideOffset = _swiperHeight * (1 - widget.viewportFraction);
       offsetsY = [0.0, 0.0, 0.0, 0.0, sideOffset, sideOffset];
     }
@@ -886,7 +877,7 @@ class _TinderState extends _CustomLayoutStateBase<_TinderSwiper> {
         ? Alignment.bottomCenter
         : Alignment.centerLeft;
 
-    // Calculate size based on viewportFraction
+    // Apply viewportFraction to the item dimensions
     final itemWidth = widget.itemWidth != null ? widget.itemWidth! * widget.viewportFraction : double.infinity;
     final itemHeight = widget.itemHeight != null ? widget.itemHeight! * widget.viewportFraction : double.infinity;
 
